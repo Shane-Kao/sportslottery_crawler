@@ -9,4 +9,4 @@ import scrapy
 class SportslotteryCrawlerItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
-    pass
+    game_time = scrapy.Field()

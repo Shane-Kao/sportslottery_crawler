@@ -4,6 +4,8 @@ from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
 from pyquery import PyQuery as pq
 
+from sportslottery_crawler.items import SportslotteryCrawlerItem
+
 # >scrapy crawl playsport
 today = datetime.now().strftime(format="%Y%m%d")
 yesterday = (datetime.now() - timedelta(days=1)).strftime(format="%Y%m%d")
@@ -30,5 +32,16 @@ class PlaysportCrawler(CrawlSpider):
     ]
 
     def get_alliance(self, response):
+        sportslottery_crawler_item = SportslotteryCrawlerItem()
         doc = pq(response.body)
-        print(doc('.tag-chosen').text())
+        alliance = doc('.tag-chosen').text()
+        row_ = doc('tr[gameid]')
+        assert not len(row_) % 2
+        game_time = [j.find('.td-gameinfo h4').text() for i, j in enumerate(row_.items()) if not i % 2]
+        # game_records = [doc('tr[gameid]')[i: i + 2] for i in range(0, len(doc('tr[gameid]')), 2)]
+
+        # for i in doc('.td-gameinfo h4').text().split():
+        #     sportslottery_crawler_item['date_time'] = i
+        # print(doc('.td-gameinfo h4').text())
+        # print(doc('.tag-chosen').text())
+        return alliance, sportslottery_crawler_item
