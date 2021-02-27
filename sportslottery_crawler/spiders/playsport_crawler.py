@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timedelta
 
 from scrapy.spiders import CrawlSpider, Rule
@@ -32,16 +33,28 @@ class PlaysportCrawler(CrawlSpider):
     ]
 
     def get_alliance(self, response):
-        sportslottery_crawler_item = SportslotteryCrawlerItem()
         doc = pq(response.body)
         alliance = doc('.tag-chosen').text()
-        row_ = doc('tr[gameid]')
+        row_ = doc('tr[gameid]').remove('.vsicon')
         assert not len(row_) % 2
         game_time = [j.find('.td-gameinfo h4').text() for i, j in enumerate(row_.items()) if not i % 2]
-        # game_records = [doc('tr[gameid]')[i: i + 2] for i in range(0, len(doc('tr[gameid]')), 2)]
-
-        # for i in doc('.td-gameinfo h4').text().split():
-        #     sportslottery_crawler_item['date_time'] = i
-        # print(doc('.td-gameinfo h4').text())
-        # print(doc('.tag-chosen').text())
-        return alliance, sportslottery_crawler_item
+        scores = [j.find('.scores').text().split() for i, j in enumerate(row_.items()) if not i % 2]
+        home_score = [i[1] if i else None for i in scores]
+        away_score = [i[0] if i else None for i in scores]
+        teams = re.sub(r'\d', '', doc('.td-teaminfo').remove('p').text()).split()
+        home_team = teams[1::2]
+        away_team = teams[::2]
+        print([SportslotteryCrawlerItem(
+            game_time=i[0],
+            home_score=i[1],
+            away_score=i[2],
+            home_team=i[3],
+            away_team=i[4],
+        ) for i in zip(game_time, home_score, away_score, home_team, away_team)])
+        return [SportslotteryCrawlerItem(
+            game_time=i[0],
+            home_score=i[1],
+            away_score=i[2],
+            home_team=i[3],
+            away_team=i[4],
+        ) for i in zip(game_time, home_score, away_score, home_team, away_team)]
