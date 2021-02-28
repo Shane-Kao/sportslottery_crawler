@@ -9,6 +9,8 @@ import scrapy
 class SportslotteryCrawlerItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
+    alliance = scrapy.Field()
+    game_date = scrapy.Field()
     game_time = scrapy.Field()
     home_score = scrapy.Field()
     away_score = scrapy.Field()

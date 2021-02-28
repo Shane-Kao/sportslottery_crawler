@@ -1,5 +1,6 @@
 import re
 from datetime import datetime, timedelta
+from urllib.parse import urlparse
 
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
@@ -34,6 +35,8 @@ class PlaysportCrawler(CrawlSpider):
 
     def get_alliance(self, response):
         doc = pq(response.body)
+        m_ = re.match(r'.+gametime=(\d+)$', response.url)
+        game_date = m_.group(1)
         alliance = doc('.tag-chosen').text()
         row_ = doc('tr[gameid]').remove('.vsicon')
         assert not len(row_) % 2
@@ -44,17 +47,12 @@ class PlaysportCrawler(CrawlSpider):
         teams = re.sub(r'\d', '', doc('.td-teaminfo').remove('p').text()).split()
         home_team = teams[1::2]
         away_team = teams[::2]
-        print([SportslotteryCrawlerItem(
-            game_time=i[0],
-            home_score=i[1],
-            away_score=i[2],
-            home_team=i[3],
-            away_team=i[4],
-        ) for i in zip(game_time, home_score, away_score, home_team, away_team)])
-        return [SportslotteryCrawlerItem(
-            game_time=i[0],
-            home_score=i[1],
-            away_score=i[2],
-            home_team=i[3],
-            away_team=i[4],
-        ) for i in zip(game_time, home_score, away_score, home_team, away_team)]
+        return SportslotteryCrawlerItem(
+            alliance=alliance,
+            game_date=game_date,
+            game_time=game_time,
+            home_score=home_score,
+            away_score=away_score,
+            home_team=home_team,
+            away_team=away_team,
+        )
