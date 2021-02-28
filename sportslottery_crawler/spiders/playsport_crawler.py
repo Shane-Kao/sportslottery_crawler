@@ -1,6 +1,5 @@
 import re
 from datetime import datetime, timedelta
-from urllib.parse import urlparse
 
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
@@ -9,8 +8,10 @@ from pyquery import PyQuery as pq
 from sportslottery_crawler.items import SportslotteryCrawlerItem
 
 # >scrapy crawl playsport
+# TODO:crawl for certain day
 today = datetime.now().strftime(format="%Y%m%d")
 yesterday = (datetime.now() - timedelta(days=1)).strftime(format="%Y%m%d")
+
 
 class PlaysportCrawler(CrawlSpider):
     name = 'playsport'
