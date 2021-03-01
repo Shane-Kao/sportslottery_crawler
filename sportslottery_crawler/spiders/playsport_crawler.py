@@ -34,6 +34,9 @@ class PlaysportCrawler(CrawlSpider):
         ),
     ]
 
+    def process_count(self):
+        pass
+
     def get_alliance(self, response):
         doc = pq(response.body)
         m_ = re.match(r'.+gametime=(\d+)$', response.url)
@@ -67,6 +70,18 @@ class PlaysportCrawler(CrawlSpider):
         tw_total = [float(i.split(',')[0][1:]) if i else None for i in tw_total_info[1::2]]
         tw_total_cnt_info = [i.find('.td-bank-bet02').next().text() for i in row_.items()][::2]
         tw_over_count = [int(i.split('%')[0])/100 if i else None for i in tw_total_cnt_info]
+        oversea_diff_info = [i.find('.td-universal-bet01').text() for i in row_.items()]
+        oversea_diff_info = [[oversea_diff_info[i], oversea_diff_info[i + 1]]
+                             for i in range(len(oversea_diff_info)) if not i % 2]
+        oversea_diff_info = [i[0] if len(i[0]) > len(i[1]) else i[1] for i in oversea_diff_info]
+        oversea_diff_cnt_info = [i.find('.td-universal-bet01').next().text() for i in row_.items()][1::2]
+        oversea_diff_home_count = [int(i.split('%')[0]) / 100 if i else None for i in oversea_diff_cnt_info]
+        oversea_total_info = [i.find('.td-universal-bet02').text() for i in row_.items()]
+        oversea_total_info = [[oversea_total_info[i], oversea_total_info[i + 1]]
+                              for i in range(len(oversea_total_info)) if not i % 2]
+        oversea_total_info = [i[0] if len(i[0]) > len(i[1]) else i[1] for i in oversea_total_info]
+        oversea_total_cnt_info = [i.find('.td-universal-bet02').next().text() for i in row_.items()][::2]
+        oversea_total_over_count = [int(i.split('%')[0]) / 100 if i else None for i in oversea_total_cnt_info]
         return SportslotteryCrawlerItem(
             alliance=alliance,
             game_date=game_date,
@@ -86,4 +101,8 @@ class PlaysportCrawler(CrawlSpider):
             tw_under_odds=tw_under_odds,
             tw_over_odds=tw_over_odds,
             tw_over_count=tw_over_count,
+            oversea_diff=oversea_diff_info,
+            oversea_diff_home_count=oversea_diff_home_count,
+            oversea_total=oversea_total_info,
+            oversea_total_over_count=oversea_total_over_count,
         )
