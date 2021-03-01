@@ -48,12 +48,42 @@ class PlaysportCrawler(CrawlSpider):
         teams = re.sub(r'\d', '', doc('.td-teaminfo').remove('p').text()).split()
         home_team = teams[1::2]
         away_team = teams[::2]
+        tw_diff_info = [i.find('.td-bank-bet01').text() for i in row_.items()]
+        tw_diff_home_odds = [i.split(',')[-1].strip() if i else None for i in tw_diff_info[1::2]]
+        tw_diff_away_odds = [i.split(',')[-1].strip() if i else None for i in tw_diff_info[::2]]
+        tw_diff = [float(i.split(',')[0][1:]) if i else None for i in tw_diff_info[1::2]]
+        tw_diff_cnt_info = [i.find('.td-bank-bet01').next().text() for i in row_.items()][1::2]
+        tw_diff_home_count = [int(i.split('%')[0])/100 if i else None for i in tw_diff_cnt_info]
+        tw_away_odds = [i.find('.td-bank-bet03').text()[1:] if i.find('.td-bank-bet03').text()
+                        else None for i in row_.items()][::2]
+        tw_home_odds = [i.find('.td-bank-bet03').text()[1:] if i.find('.td-bank-bet03').text()
+                        else None for i in row_.items()][1::2]
+        tw_home_count=[int(i.find('.td-bank-bet03').next().text().split('%')[0]) / 100 if i.find(
+            '.td-bank-bet03').next().text() else None
+         for i in row_.items()][1::2]
+        tw_total_info = [i.find('.td-bank-bet02').text() for i in row_.items()]
+        tw_under_odds = [i.split(',')[-1].strip() if i else None for i in tw_total_info[1::2]]
+        tw_over_odds = [i.split(',')[-1].strip() if i else None for i in tw_total_info[::2]]
+        tw_total = [float(i.split(',')[0][1:]) if i else None for i in tw_total_info[1::2]]
+        tw_total_cnt_info = [i.find('.td-bank-bet02').next().text() for i in row_.items()][::2]
+        tw_over_count = [int(i.split('%')[0])/100 if i else None for i in tw_total_cnt_info]
         return SportslotteryCrawlerItem(
             alliance=alliance,
             game_date=game_date,
             game_time=game_time,
-            home_score=home_score,
             away_score=away_score,
-            home_team=home_team,
+            home_score=home_score,
             away_team=away_team,
+            home_team=home_team,
+            tw_diff=tw_diff,
+            tw_diff_away_odds=tw_diff_away_odds,
+            tw_diff_home_odds=tw_diff_home_odds,
+            tw_diff_home_count=tw_diff_home_count,
+            tw_away_odds=tw_away_odds,
+            tw_home_odds=tw_home_odds,
+            tw_home_count=tw_home_count,
+            tw_total=tw_total,
+            tw_under_odds=tw_under_odds,
+            tw_over_odds=tw_over_odds,
+            tw_over_count=tw_over_count,
         )
