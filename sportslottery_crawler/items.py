@@ -23,4 +23,4 @@ class SportslotteryCrawlerItem(scrapy.Item):
     oversea_diff = scrapy.Field()
     oversea_diff_home_count = scrapy.Field()
     oversea_total = scrapy.Field()
-    oversea_total_over_count = scrapy.Field()
+    oversea_over_count = scrapy.Field()
