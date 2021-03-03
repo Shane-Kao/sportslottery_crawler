@@ -9,6 +9,8 @@ from sportslottery_crawler.items import SportslotteryCrawlerItem
 
 # >scrapy crawl playsport
 # TODO:crawl for certain day
+# TODO:費城人
+# TODO:assert data length
 today = datetime.now().strftime(format="%Y%m%d")
 yesterday = (datetime.now() - timedelta(days=1)).strftime(format="%Y%m%d")
 
@@ -56,8 +58,29 @@ class PlaysportCrawler(CrawlSpider):
         return info
 
     @staticmethod
-    def _process_oversea_diff():
-        pass
+    def _process_oversea_diff(raw_input):
+        if not raw_input:
+            return raw_input
+        val_ = 1
+        score_ = re.match(r'(主|客)(\d+)分', raw_input).group(2)
+        if raw_input.startswith("主"):
+            val_ *= -1 * int(score_)
+            if "贏" in raw_input:
+                return -(-val_ - 0.5)
+            elif "輸" in raw_input:
+                return -(-val_ + 0.5)
+            else:
+                raise Exception
+        elif raw_input.startswith("客"):
+            val_ *= 1 * int(score_)
+            if "贏" in raw_input:
+                return val_ - 0.5
+            elif "輸" in raw_input:
+                return val_ + 0.5
+            else:
+                raise Exception
+        else:
+            raise Exception
 
     @staticmethod
     def _process_oversea_total(raw_input):
@@ -72,7 +95,6 @@ class PlaysportCrawler(CrawlSpider):
                 return int(raw_input.split("輸")[0][1:]) + 0.5
             else:
                 raise Exception
-
 
     def get_alliance(self, response):
         doc = pq(response.body)
@@ -120,7 +142,7 @@ class PlaysportCrawler(CrawlSpider):
             tw_under_odds=tw_under_odds,
             tw_over_odds=tw_over_odds,
             tw_over_count=tw_over_count,
-            oversea_diff=oversea_diff_info,
+            oversea_diff=[self._process_oversea_diff(i) for i in oversea_diff_info],
             oversea_diff_home_count=oversea_diff_home_count,
             oversea_total=[self._process_oversea_total(i) for i in oversea_total_info],
             oversea_over_count=oversea_over_count,
