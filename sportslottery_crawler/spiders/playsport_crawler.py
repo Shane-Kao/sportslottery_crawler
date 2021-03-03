@@ -60,8 +60,19 @@ class PlaysportCrawler(CrawlSpider):
         pass
 
     @staticmethod
-    def _process_oversea_total():
-        pass
+    def _process_oversea_total(raw_input):
+        if not raw_input:
+            return raw_input
+        try:
+            return float(raw_input[1:])
+        except:
+            if "贏" in raw_input:
+                return int(raw_input.split("贏")[0][1:]) - 0.5
+            elif "輸" in raw_input:
+                return int(raw_input.split("輸")[0][1:]) + 0.5
+            else:
+                raise Exception
+
 
     def get_alliance(self, response):
         doc = pq(response.body)
@@ -111,6 +122,6 @@ class PlaysportCrawler(CrawlSpider):
             tw_over_count=tw_over_count,
             oversea_diff=oversea_diff_info,
             oversea_diff_home_count=oversea_diff_home_count,
-            oversea_total=oversea_total_info,
+            oversea_total=[self._process_oversea_total(i) for i in oversea_total_info],
             oversea_over_count=oversea_over_count,
         )
