@@ -9,6 +9,7 @@ from sportslottery_crawler.items import SportslotteryCrawlerItem
 
 # scrapy crawl playsport
 # scrapy crawl -a date=20200902 playsport --nolog
+#TODO: noty when failed
 
 today = datetime.now().strftime(format="%Y%m%d")
 yesterday = (datetime.now() - timedelta(days=1)).strftime(format="%Y%m%d")
@@ -18,44 +19,23 @@ tomorrow = (datetime.now() + timedelta(days=1)).strftime(format="%Y%m%d")
 class PlaysportCrawler(CrawlSpider):
     name = 'playsport'
     start_urls = ["https://www.playsport.cc/predictgame.php?action=scale&allianceid=4"]
+    url_pattern = "predictgame.php\?action=scale\&allianceid=((?!90|4)\d+)\&sid=0&gametime={}$"
+
+    def _get_ruler(self, date):
+        return Rule(
+            link_extractor=LinkExtractor(
+                allow=self.url_pattern.format(date),
+                process_value=lambda x: x + '&gametime={}'.format(date)
+            ),
+            callback="get_alliance",
+        )
 
     def __init__(self, date=None, **kwargs):
-        if date is None:
-            self.rules = [
-        Rule(
-            link_extractor=LinkExtractor(
-                allow="predictgame.php\?action=scale\&allianceid=((?!90|4)\d+)\&sid=0&gametime={}$".format(today),
-                process_value=lambda x: x + '&gametime={}'.format(today)
-            ),
-            callback="get_alliance",
-        ),
-        Rule(
-            link_extractor=LinkExtractor(
-                allow="predictgame.php\?action=scale\&allianceid=((?!90|4)\d+)\&sid=0&gametime={}$".format(yesterday),
-                process_value=lambda x: x + '&gametime={}'.format(yesterday)
-            ),
-            callback="get_alliance",
-        ),
-        Rule(
-            link_extractor=LinkExtractor(
-                allow="predictgame.php\?action=scale\&allianceid=((?!90|4)\d+)\&sid=0&gametime={}$".format(
-                    tomorrow),
-                process_value=lambda x: x + '&gametime={}'.format(tomorrow)
-            ),
-            callback="get_alliance",
-        ),
-    ]
-        else:
-            self.rules = [
-                Rule(
-                    link_extractor=LinkExtractor(
-                        allow="predictgame.php\?action=scale\&allianceid=((?!90|4)\d+)\&sid=0&gametime={}$".format(
-                            date),
-                        process_value=lambda x: x + '&gametime={}'.format(date)
-                    ),
-                    callback="get_alliance",
-                ),
-            ]
+        self.rules = [
+            self._get_ruler(date=yesterday),
+            self._get_ruler(date=today),
+            self._get_ruler(date=tomorrow),
+        ] if date is None else [self._get_ruler(date=date),]
         super().__init__(**kwargs)
 
     @staticmethod
