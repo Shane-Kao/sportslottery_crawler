@@ -63,26 +63,21 @@ class PlaysportCrawler(CrawlSpider):
     def _process_oversea_diff(raw_input):
         if not raw_input:
             return raw_input
-        val_ = 1
         score_ = re.match(r'(主|客)(\d+)分', raw_input).group(2)
-        if raw_input.startswith("主"):
-            val_ *= -1 * int(score_)
-            if "贏" in raw_input:
-                return -(-val_ - 0.5)
-            elif "輸" in raw_input:
-                return -(-val_ + 0.5)
-            else:
-                raise Exception
-        elif raw_input.startswith("客"):
-            val_ *= 1 * int(score_)
-            if "贏" in raw_input:
-                return val_ - 0.5
-            elif "輸" in raw_input:
-                return val_ + 0.5
-            else:
-                raise Exception
+        val_ = int(score_)
+        if "贏" in raw_input:
+            val_ = -(val_ - 0.5)
+        elif "輸" in raw_input:
+            val_ = -(val_ + 0.5)
         else:
             raise Exception
+        if raw_input.startswith("客"):
+            val_ *= -1
+        elif raw_input.startswith("主"):
+            pass
+        else:
+            raise Exception
+        return val_
 
     @staticmethod
     def _process_oversea_total(raw_input):
