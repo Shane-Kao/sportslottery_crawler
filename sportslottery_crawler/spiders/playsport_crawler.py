@@ -6,6 +6,7 @@ from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
 from pyquery import PyQuery as pq
 
+from utils.notifier import _notifier
 from sportslottery_crawler.items import SportslotteryCrawlerItem
 
 # scrapy crawl playsport
@@ -177,12 +178,15 @@ class PlaysportCrawler(CrawlSpider):
         return spider
 
     def spider_error(self, failure, response, spider):
-        print(response.url)
-        print(failure.getErrorMessage())
-        print("spider error")
+        status_code = _notifier(
+            msg='\n'.join(["Spider Error", response.url, failure.getErrorMessage()])
+        )
+        if status_code != 200:
+            raise Exception
 
     def item_error(self, item, response, spider, failure):
-        print(item)
-        print(response.url)
-        print(failure.getErrorMessage())
-        print("item error")
+        status_code = _notifier(
+            msg='\n'.join(["Item Error", str(item), response.url, failure.getErrorMessage()])
+        )
+        if status_code != 200:
+            raise Exception
