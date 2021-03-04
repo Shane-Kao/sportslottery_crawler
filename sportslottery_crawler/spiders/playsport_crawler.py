@@ -7,18 +7,21 @@ from pyquery import PyQuery as pq
 
 from sportslottery_crawler.items import SportslotteryCrawlerItem
 
-# >scrapy crawl playsport
-# TODO:crawl for certain day
-# TODO:assert data length
+# scrapy crawl playsport
+# scrapy crawl -a date=20200902 playsport --nolog
+
 today = datetime.now().strftime(format="%Y%m%d")
 yesterday = (datetime.now() - timedelta(days=1)).strftime(format="%Y%m%d")
+tomorrow = (datetime.now() + timedelta(days=1)).strftime(format="%Y%m%d")
 
 
 class PlaysportCrawler(CrawlSpider):
     name = 'playsport'
     start_urls = ["https://www.playsport.cc/predictgame.php?action=scale&allianceid=4"]
 
-    rules = [
+    def __init__(self, date=None, **kwargs):
+        if date is None:
+            self.rules = [
         Rule(
             link_extractor=LinkExtractor(
                 allow="predictgame.php\?action=scale\&allianceid=((?!90|4)\d+)\&sid=0&gametime={}$".format(today),
@@ -33,7 +36,27 @@ class PlaysportCrawler(CrawlSpider):
             ),
             callback="get_alliance",
         ),
+        Rule(
+            link_extractor=LinkExtractor(
+                allow="predictgame.php\?action=scale\&allianceid=((?!90|4)\d+)\&sid=0&gametime={}$".format(
+                    tomorrow),
+                process_value=lambda x: x + '&gametime={}'.format(tomorrow)
+            ),
+            callback="get_alliance",
+        ),
     ]
+        else:
+            self.rules = [
+                Rule(
+                    link_extractor=LinkExtractor(
+                        allow="predictgame.php\?action=scale\&allianceid=((?!90|4)\d+)\&sid=0&gametime={}$".format(
+                            date),
+                        process_value=lambda x: x + '&gametime={}'.format(date)
+                    ),
+                    callback="get_alliance",
+                ),
+            ]
+        super().__init__(**kwargs)
 
     @staticmethod
     def _process_count(row, class_name, type_):
@@ -122,6 +145,29 @@ class PlaysportCrawler(CrawlSpider):
         oversea_diff_home_count = self._process_count(row_, "td-universal-bet01", "diff")
         oversea_total_info = self._process_oversea_info(row_, "td-universal-bet02")
         oversea_over_count = self._process_count(row_, "td-universal-bet02", "total")
+        N = len(row_)/2
+        assert all([
+            len(game_time) == N,
+            len(away_score) == N,
+            len(home_score) == N,
+            len(away_team) == N,
+            len(home_team) == N,
+            len(tw_diff) == N,
+            len(tw_diff_away_odds) == N,
+            len(tw_diff_home_odds) == N,
+            len(tw_diff_home_count) == N,
+            len(tw_away_odds) == N,
+            len(tw_home_odds) == N,
+            len(tw_home_count) == N,
+            len(tw_total) == N,
+            len(tw_under_odds) == N,
+            len(tw_over_odds) == N,
+            len(tw_over_count) == N,
+            len(oversea_diff_info) == N,
+            len(oversea_diff_home_count) == N,
+            len(oversea_total_info) == N,
+            len(oversea_over_count) == N,
+        ])
         return SportslotteryCrawlerItem(
             alliance=alliance,
             game_date=game_date,
