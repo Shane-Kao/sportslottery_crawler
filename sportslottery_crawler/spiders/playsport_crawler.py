@@ -1,6 +1,7 @@
 import re
 from datetime import datetime, timedelta
 
+from scrapy import signals
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
 from pyquery import PyQuery as pq
@@ -9,7 +10,7 @@ from sportslottery_crawler.items import SportslotteryCrawlerItem
 
 # scrapy crawl playsport
 # scrapy crawl -a date=20200902 playsport --nolog
-#TODO: noty when failed
+# TODO: noty when failed
 
 today = datetime.now().strftime(format="%Y%m%d")
 yesterday = (datetime.now() - timedelta(days=1)).strftime(format="%Y%m%d")
@@ -35,14 +36,14 @@ class PlaysportCrawler(CrawlSpider):
             self._get_ruler(date=yesterday),
             self._get_ruler(date=today),
             self._get_ruler(date=tomorrow),
-        ] if date is None else [self._get_ruler(date=date),]
+        ] if date is None else [self._get_ruler(date=date), ]
         super().__init__(**kwargs)
 
     @staticmethod
     def _process_count(row, class_name, type_):
         cnt_info = [i.find('.{}'.format(class_name)).next().text() for i in row.items()]
         cnt_info = cnt_info[1::2] if type_ != "total" else cnt_info[::2]
-        return [int(i.split('%')[0])/100 if i else None for i in cnt_info]
+        return [int(i.split('%')[0]) / 100 if i else None for i in cnt_info]
 
     @staticmethod
     def _process_tw_info(row, class_name):
@@ -100,7 +101,8 @@ class PlaysportCrawler(CrawlSpider):
         alliance = doc('.tag-chosen').text()
         row_ = doc('tr[gameid]').remove('.vsicon').remove(".aid8-teaminfo")
         assert not len(row_) % 2
-        game_time = [j.find('.td-gameinfo h4').text() for i, j in enumerate(row_.items()) if not i % 2]
+        game_time = [j.find('.td-gameinfo h4').text() for i, j in enumerate(row_.items()) if
+                     not i % 2]
         scores = [j.find('.scores').text().split() for i, j in enumerate(row_.items()) if not i % 2]
         home_score = [i[1] if i else None for i in scores]
         away_score = [i[0] if i else None for i in scores]
@@ -109,8 +111,8 @@ class PlaysportCrawler(CrawlSpider):
         away_team = teams[::2]
         tw_diff, tw_diff_home_odds, tw_diff_away_odds = self._process_tw_info(row_, "td-bank-bet01")
         tw_diff_home_count = self._process_count(row_, "td-bank-bet01", "diff")
-        tw_odds = [i.find('.td-bank-bet03').text()[1:] if i.find('.td-bank-bet03').text() else None for i in
-                   row_.items()]
+        tw_odds = [i.find('.td-bank-bet03').text()[1:] if i.find('.td-bank-bet03').text() else None
+                   for i in row_.items()]
         tw_away_odds = tw_odds[::2]
         tw_home_odds = tw_odds[1::2]
         tw_home_count = self._process_count(row_, "td-bank-bet03", "money_line")
@@ -120,28 +122,28 @@ class PlaysportCrawler(CrawlSpider):
         oversea_diff_home_count = self._process_count(row_, "td-universal-bet01", "diff")
         oversea_total_info = self._process_oversea_info(row_, "td-universal-bet02")
         oversea_over_count = self._process_count(row_, "td-universal-bet02", "total")
-        N = len(row_)/2
+        n = len(row_) / 2
         assert all([
-            len(game_time) == N,
-            len(away_score) == N,
-            len(home_score) == N,
-            len(away_team) == N,
-            len(home_team) == N,
-            len(tw_diff) == N,
-            len(tw_diff_away_odds) == N,
-            len(tw_diff_home_odds) == N,
-            len(tw_diff_home_count) == N,
-            len(tw_away_odds) == N,
-            len(tw_home_odds) == N,
-            len(tw_home_count) == N,
-            len(tw_total) == N,
-            len(tw_under_odds) == N,
-            len(tw_over_odds) == N,
-            len(tw_over_count) == N,
-            len(oversea_diff_info) == N,
-            len(oversea_diff_home_count) == N,
-            len(oversea_total_info) == N,
-            len(oversea_over_count) == N,
+            len(game_time) == n,
+            len(away_score) == n,
+            len(home_score) == n,
+            len(away_team) == n,
+            len(home_team) == n,
+            len(tw_diff) == n,
+            len(tw_diff_away_odds) == n,
+            len(tw_diff_home_odds) == n,
+            len(tw_diff_home_count) == n,
+            len(tw_away_odds) == n,
+            len(tw_home_odds) == n,
+            len(tw_home_count) == n,
+            len(tw_total) == n,
+            len(tw_under_odds) == n,
+            len(tw_over_odds) == n,
+            len(tw_over_count) == n,
+            len(oversea_diff_info) == n,
+            len(oversea_diff_home_count) == n,
+            len(oversea_total_info) == n,
+            len(oversea_over_count) == n,
         ])
         return SportslotteryCrawlerItem(
             alliance=alliance,
@@ -167,3 +169,21 @@ class PlaysportCrawler(CrawlSpider):
             oversea_total=[self._process_oversea_total(i) for i in oversea_total_info],
             oversea_over_count=oversea_over_count,
         )
+
+    @classmethod
+    def from_crawler(cls, crawler, *args, **kwargs):
+        spider = super(PlaysportCrawler, cls).from_crawler(crawler, *args, **kwargs)
+        crawler.signals.connect(spider.spider_error, signal=signals.spider_error)
+        crawler.signals.connect(spider.item_error, signal=signals.item_error)
+        return spider
+
+    def spider_error(self, failure, response, spider):
+        print(response.url)
+        print(failure.getErrorMessage())
+        print("spider error")
+
+    def item_error(self, item, response, spider, failure):
+        print(item)
+        print(response.url)
+        print(failure.getErrorMessage())
+        print("item error")
