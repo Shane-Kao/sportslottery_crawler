@@ -9,7 +9,6 @@ from sportslottery_crawler.items import SportslotteryCrawlerItem
 
 # >scrapy crawl playsport
 # TODO:crawl for certain day
-# TODO:費城人
 # TODO:assert data length
 today = datetime.now().strftime(format="%Y%m%d")
 yesterday = (datetime.now() - timedelta(days=1)).strftime(format="%Y%m%d")
@@ -107,7 +106,7 @@ class PlaysportCrawler(CrawlSpider):
         scores = [j.find('.scores').text().split() for i, j in enumerate(row_.items()) if not i % 2]
         home_score = [i[1] if i else None for i in scores]
         away_score = [i[0] if i else None for i in scores]
-        teams = re.sub(r'\d', '', doc('.td-teaminfo').remove('p').text()).split()
+        teams = [i for i in doc('.td-teaminfo').remove('p').text().split() if not i.isnumeric()]
         home_team = teams[1::2]
         away_team = teams[::2]
         tw_diff, tw_diff_home_odds, tw_diff_away_odds = self._process_tw_info(row_, "td-bank-bet01")
