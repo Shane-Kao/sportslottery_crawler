@@ -10,7 +10,6 @@ from sportslottery_crawler.items import SportslotteryCrawlerItem
 
 # scrapy crawl playsport
 # scrapy crawl -a date=20200902 playsport --nolog
-# TODO: noty when failed
 
 today = datetime.now().strftime(format="%Y%m%d")
 yesterday = (datetime.now() - timedelta(days=1)).strftime(format="%Y%m%d")
