@@ -178,15 +178,11 @@ class PlaysportCrawler(CrawlSpider):
         return spider
 
     def spider_error(self, failure, response, spider):
-        status_code = _notifier(
+        _ = _notifier(
             msg='\n'.join(["Spider Error", response.url, failure.getErrorMessage()])
         )
-        if status_code != 200:
-            raise Exception
 
     def item_error(self, item, response, spider, failure):
-        status_code = _notifier(
+        _ = _notifier(
             msg='\n'.join(["Item Error", str(item), response.url, failure.getErrorMessage()])
         )
-        if status_code != 200:
-            raise Exception

@@ -11,7 +11,10 @@ def _notifier(msg):
 
     payload = {'message': msg}
     r = requests.post("https://notify-api.line.me/api/notify", headers=headers, params=payload)
-    return r.status_code
+    status_code = r.status_code
+    if status_code != 200:
+        raise Exception
+    return status_code
 
 
 if __name__ == "__main__":
