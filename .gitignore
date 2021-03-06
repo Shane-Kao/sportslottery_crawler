@@ -133,3 +133,6 @@ dmypy.json
 data/
 /configs.py
 /test.py
+/bin/crawler_scheduler.bat
+!/bin/
+!/bin/jobs.bat

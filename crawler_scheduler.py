@@ -16,10 +16,15 @@ def my_listener(event):
         _ = _notifier(msg='\n'.join(["Crawler Worked", ]))
 
 
-process = CrawlerProcess(get_project_settings())
-process.crawl(PlaysportCrawler)
-scheduler = TwistedScheduler()
-scheduler.add_job(process.crawl, 'interval', hours=6, args=[PlaysportCrawler])
-scheduler.add_listener(my_listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
-scheduler.start()
-process.start(False)
+def main():
+    process = CrawlerProcess(get_project_settings())
+    process.crawl(PlaysportCrawler)
+    scheduler = TwistedScheduler()
+    scheduler.add_job(process.crawl, 'interval', hours=3, args=[PlaysportCrawler])
+    scheduler.add_listener(my_listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
+    scheduler.start()
+    process.start(False)
+
+
+if __name__ == '__main__':
+    main()
