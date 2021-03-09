@@ -12,10 +12,6 @@ from sportslottery_crawler.items import SportslotteryCrawlerItem
 # scrapy crawl playsport
 # scrapy crawl -a date=20200902 playsport --nolog
 
-today = datetime.now().strftime(format="%Y%m%d")
-yesterday = (datetime.now() - timedelta(days=1)).strftime(format="%Y%m%d")
-tomorrow = (datetime.now() + timedelta(days=1)).strftime(format="%Y%m%d")
-
 
 class PlaysportCrawler(CrawlSpider):
     name = 'playsport'
@@ -33,9 +29,9 @@ class PlaysportCrawler(CrawlSpider):
 
     def __init__(self, date=None, **kwargs):
         self.rules = [
-            self._get_ruler(date=yesterday),
-            self._get_ruler(date=today),
-            self._get_ruler(date=tomorrow),
+            self._get_ruler(date=(datetime.now() - timedelta(days=1)).strftime(format="%Y%m%d")),
+            self._get_ruler(date=datetime.now().strftime(format="%Y%m%d")),
+            self._get_ruler(date=(datetime.now() + timedelta(days=1)).strftime(format="%Y%m%d")),
         ] if date is None else [self._get_ruler(date=date), ]
         super().__init__(**kwargs)
 
