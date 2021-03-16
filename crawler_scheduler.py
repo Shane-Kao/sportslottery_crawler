@@ -24,6 +24,7 @@ def main():
     scheduler.add_listener(my_listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
     scheduler.start()
     process.start(False)
+    _ = _notifier(msg='\n'.join(["Scheduler Start", ]))
 
 
 if __name__ == '__main__':
