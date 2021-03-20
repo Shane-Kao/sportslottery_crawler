@@ -1,6 +1,9 @@
+import os
+
 import pandas as pd
 
 from utils.create_dir import create_dir
+from configs import DATA_DIR
 
 
 class SportslotteryCrawlerPipeline:
@@ -11,6 +14,7 @@ class SportslotteryCrawlerPipeline:
         game_date = item_dict.pop('game_date')
         df = pd.DataFrame(item_dict)
         if not df.empty:
+            os.chdir(DATA_DIR)
             create_dir("data/{}/{}".format(spider_name, alliance))
             df.to_csv("data/{}/{}/{}.csv".format(spider_name, alliance, game_date), index=False)
 
